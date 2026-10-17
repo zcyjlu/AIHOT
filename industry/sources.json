@@ -79,7 +79,8 @@
           "https://www.gold.org/goldhub/gold-focus/"
         ],
         "detail": {
-          "maxFetches": 8
+          "maxFetches": 8,
+          "bodySelector": "main .wgc-text:not(wgc-accordion .wgc-text)"
         },
         "_aihot": {
           "initialBackfillLimit": 8
@@ -222,6 +223,100 @@
       "tags": [
         "官方",
         "利率"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-panews-zh",
+      "name": "PANews · 中文资讯",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.panewslab.com/rss.xml?lang=zh&type=NORMAL%2CNEWS",
+        "ingestNoiseFilter": {
+          "dropMarkersTitleOnly": [
+            "空投",
+            "返佣",
+            "交易大赛",
+            "MEME日报",
+            "羊毛",
+            "喊单"
+          ]
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-jiemian",
+      "name": "界面新闻 · 中文财经",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://a.jiemian.com/index.php?m=article&a=rss",
+        "ingestNoiseFilter": {
+          "dropMarkersTitleOnly": [
+            "电影票房",
+            "总票房",
+            "明星穿搭"
+          ]
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "A股",
+        "宏观经济"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-wgc-gold-focus-zh",
+      "name": "世界黄金协会 · 中文市场洞察",
+      "kind": "web_list",
+      "config": {
+        "url": "https://china.gold.org/goldhub/gold-focus",
+        "parseMode": "html",
+        "itemSelector": ".m-blog-card",
+        "linkSelector": "a.m-blog-card__copy",
+        "titleSelector": "a.m-blog-card__copy h3",
+        "allowUrlPrefixes": [
+          "https://china.gold.org/gold-focus/",
+          "https://china.gold.org/goldhub/gold-focus/"
+        ],
+        "detail": {
+          "maxFetches": 3,
+          "bodySelector": "main .wgc-text:not(wgc-accordion .wgc-text)",
+          "summarySelector": "meta[name=\"description\"]"
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "wgc",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": [
+        "官方",
+        "黄金"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
