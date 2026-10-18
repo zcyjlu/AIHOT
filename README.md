@@ -1,3 +1,5 @@
+> **本站定制：金讯** — 比特币、黄金优先，兼顾宏观、股票、ETF 和利率。配置范围、信源核验、已有部署处理和上线前决策见 [金融站说明](docs/finance.md)。以下保留上游框架文档。
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">

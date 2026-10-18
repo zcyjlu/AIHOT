@@ -16,6 +16,8 @@ import { noiseFiltered } from "@aihot/backend/sources/filters";
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
 
 const pages: Record<string, () => string> = {
+  "/embedded-date.xml": () => `<rss version="2.0"><channel>${["", "<pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>"].map((date, i) =>
+    `<item><title>Regulator notice ${i}</title><link>https://example.org/news/${i}</link>${date}<description><![CDATA[<span class="created"><time datetime="2026-10-16T16:14:51+02:00">16 October 2026</time></span><p>Notice text.</p>]]></description></item>`).join("")}</channel></rss>`,
   // The Verge's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
   "/verge.xml": () =>
     `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">` +
@@ -51,6 +53,17 @@ await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve
 const site = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 config.allowPrivateNetworkFetch = true;
 after(() => new Promise<void>((resolve) => server.close(() => resolve())));
+
+test("an explicit feed description date selector supplies only missing standard dates", async () => {
+  const read = async (publishedAtSelector?: string) => (await fetchRss({ id: "regulator-feed", kind: "rss", config: {
+    feedUrl: `${site}/embedded-date.xml`, ...(publishedAtSelector ? { publishedAtSelector } : {}),
+  }, participation_mode: "editorial", cursor: null } as never, { force: true })).candidates;
+  assert.equal((await read())[0]!.publishedAt, null);
+  const configured = await read(".created time[datetime]");
+  assert.equal(configured[0]!.publishedAt?.toISOString(), "2026-10-16T14:14:51.000Z");
+  assert.equal(configured[1]!.publishedAt?.toISOString(), "2026-09-30T00:00:00.000Z");
+  assert.equal((await read(".missing"))[0]!.publishedAt, null);
+});
 
 test("Jina card links become posts with their own titles", () => {
   const md = [
@@ -200,4 +213,37 @@ test("dates in yyyymmdd and in JSON-LD are read", async () => {
   assert.deepEqual(days.map((c) => c.publishedAt?.toISOString() ?? null), ["2026-09-22T00:00:00.000Z", null], "February 30 is no date");
   const got = await fetchDetail(`${site}/ld-post`, { id: "test-feed", config: { detail: { maxFetches: 20 } } } as never, { date: true, title: false, summary: false, body: false });
   assert.equal(got.publishedAt?.toISOString(), "2026-09-24T00:00:00.000Z");
+});
+
+// A research page splits its article across blocks while a longer legal disclosure wins Readability.
+// An explicit source scope must win in both detail enrichment and standalone extraction.
+const scopedProse = 'The central bank added 23 tonnes during the month. Holdings and fund flows are reported for the same period. '.repeat(8);
+pages['/scoped-body'] = () => `<html><head><title>Monthly research</title><meta property="article:published_time" content="2026-10-15T08:00:00Z"></head><body>` +
+  `<main><section class="report-copy"><h2>Monthly results</h2><p>${scopedProse}</p><div class="report-copy"><p>ETF holdings reached 304 tonnes.</p><img src="/chart.png"></div></section></main>` +
+  `<div class="legal"><p>${'Important information and disclaimers. All rights reserved. This information is provided without any warranty. '.repeat(70)}</p></div></body></html>`;
+
+test('an explicit body scope keeps the research instead of a longer disclosure on both extraction paths', async () => {
+  const selector = 'main .report-copy';
+  const draft = source({ detail: { bodySelector: selector } });
+  const detail = await fetchDetail(`${site}/scoped-body`, draft, { date: true, title: false, summary: false, body: true });
+  const { extractFromUrl } = await import('@aihot/backend/content/extract');
+  const standalone = await extractFromUrl(`${site}/scoped-body`, 'scope-test', undefined, selector);
+  for (const body of [detail.body, standalone]) {
+    assert.ok(body);
+    assert.ok(body.text.includes('added 23 tonnes'));
+    assert.ok(body.text.includes('ETF holdings reached 304 tonnes'));
+    assert.ok(!body.text.includes('disclaimers'));
+    assert.equal(body.text.match(/ETF holdings reached 304 tonnes/g)?.length, 1, 'nested matches do not duplicate material');
+    assert.equal(body.images[0]?.url, `${site}/chart.png`);
+  }
+  assert.equal(detail.publishedAt?.toISOString(), '2026-10-15T08:00:00.000Z');
+});
+
+test('a missing or empty configured body scope cannot fall back to the unrelated disclosure', async () => {
+  const { extractFromUrl } = await import('@aihot/backend/content/extract');
+  for (const selector of ['.missing-copy', 'head title']) {
+    const detail = await fetchDetail(`${site}/scoped-body`, source({ detail: { bodySelector: selector } }), { date: true, title: false, summary: false, body: true });
+    assert.equal(detail.body, null);
+    assert.equal(await extractFromUrl(`${site}/scoped-body`, 'missing-scope-test', undefined, selector), null);
+  }
 });

@@ -97,7 +97,7 @@ function settleInlineVisibility(document: ReturnType<typeof parseHTML>["document
 }
 
 /** A publication time the page prints without a zone is read in utcOffset (the source's articleUtcOffset). */
-export function readable(html: string, url: string, utcOffset?: string): ExtractedBody | null {
+export function readable(html: string, url: string, utcOffset?: string, bodySelector?: string): ExtractedBody | null {
   if (isVideoPageUrl(url)) return null;
   const { document } = parseHTML(html);
   try {
@@ -109,6 +109,19 @@ export function readable(html: string, url: string, utcOffset?: string): Extract
   }
   settleStreamedContent(document);
   settleInlineVisibility(document);
+  if (bodySelector !== undefined) {
+    // Explicit source evidence outranks Readability's guess, including a longer legal disclosure.
+    // A changed page must fail closed rather than silently returning unrelated page furniture.
+    let nodes;
+    try { nodes = [...document.querySelectorAll(bodySelector)]; }
+    catch { return null; }
+    if (!nodes.length) return null;
+    const article = document.createElement("article");
+    for (const node of nodes) {
+      if (!nodes.some(parent => parent !== node && parent.contains(node))) article.appendChild(node.cloneNode(true));
+    }
+    document.body.replaceChildren(article);
+  }
   const article = new Readability(document as unknown as ConstructorParameters<typeof Readability>[0], { charThreshold: MIN_BODY_CHARS, keepClasses: false }).parse();
   if (!article?.content) return null;
   const clean = trimTrailingChrome(sanitizeBody(article.content, url));
@@ -124,19 +137,21 @@ export function readable(html: string, url: string, utcOffset?: string): Extract
   return { html: clean, text, images, via: "readability", publishedAt: parseLooseDate(article.publishedTime, utcOffset) };
 }
 
-export async function extractFromUrl(url: string, subject: string, utcOffset?: string): Promise<ExtractedBody | null> {
+export async function extractFromUrl(url: string, subject: string, utcOffset?: string, bodySelector?: string): Promise<ExtractedBody | null> {
   if (isVideoPageUrl(url)) return null;
   try {
     const res = await guardedFetch(url, { timeoutMs: 20_000, maxBytes: 6 * 1024 * 1024 });
     if (isVideoPageUrl(res.url)) return null;
     const type = res.headers.get("content-type") ?? "";
     if (res.status === 200 && /html/.test(type)) {
-      const got = readable(res.text(), res.url, utcOffset);
+      const got = readable(res.text(), res.url, utcOffset, bodySelector);
       if (got) return got;
     }
   } catch {
     // fall through to Jina
   }
+  // Jina cannot enforce the configured DOM scope.
+  if (bodySelector !== undefined) return null;
   try {
     const page = await jinaRead(url, { purpose: "body_fallback", subject });
     const html = markdownBody(page.markdown, url);
@@ -167,7 +182,7 @@ export async function extractArticleBody(articleId: string): Promise<"ok" | "unc
     FROM articles a JOIN sources s ON s.id = a.source_id WHERE a.id = ${articleId}`;
   if (!a || a.body_status === "ok") return "skipped";
   if (a.x_post?.tweetId) return extractXArticle(a.id, a.x_post.tweetId, a.revision);
-  const got = await extractFromUrl(a.url, `article:${a.id}`, articleUtcOffset(a.config));
+  const got = await extractFromUrl(a.url, `article:${a.id}`, articleUtcOffset(a.config), a.config.detail?.bodySelector);
   if (!got) {
     return markUnconfirmed(articleId, a.revision);
   }

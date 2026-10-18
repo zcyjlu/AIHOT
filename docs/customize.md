@@ -47,6 +47,8 @@
 
 站点地址不写在这里，部署时用环境变量 `SITE_URL` 设置。
 
+若某个公开信源的本机 DNS 返回虚拟地址，可在 `DEPLOYMENT.proxyFetchHosts` 中填入该完整域名，使用已有 `EGRESS_PROXY_URL` 的公网解析。每次跳转仍重新选路、校验公网地址并固定连接地址；不需要关闭内网地址保护。未配置的域名保留原有选路。
+
 ## 2. 分类、标签和主题：`industry/taxonomy.ts`、`industry/topics.json`
 
 - `CATEGORIES`：首页和“全部动态”的筛选类别。`key` 会出现在网址和接口里（`/all?category=`、`/feed/category/<key>.xml`），上线后不要改；`label` 是显示名；`section` 是日报、周报、月报里的分节（几个类别可以共用一节）；`guide` 写这一类收什么、和相邻类别的边界在哪，结构化时给模型看（总的归类原则在 `prompts/structure.md`）；`commentary: true` 标出评论类（教程、观点）：报过的事件再有这类跟进，即使是当事方自己发的，日报也只放进快讯（除非有 4 家以上信源报道）；`feedLabel` 是分类 RSS 标题里的名字（不写就用 `label`）。要让一类在公开接口、RSS 和 MCP 里并进另一类发布（网页上照样分开），写在 `site.ts` 的 `PUBLIC_CATEGORIES`。

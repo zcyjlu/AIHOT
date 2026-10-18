@@ -8,8 +8,9 @@ import { DEPLOYMENT } from "@aihot/site";
 import { config } from "@aihot/backend/config";
 import { guardedFetch } from "@aihot/backend/lib/http-fetch";
 
-const deployment = DEPLOYMENT as unknown as { directFetchHosts?: string[] };
+const deployment = DEPLOYMENT as unknown as { directFetchHosts?: string[]; proxyFetchHosts?: string[] };
 const previousHosts = deployment.directFetchHosts;
+const previousProxyHosts = deployment.proxyFetchHosts;
 const previousProxy = config.egressProxyUrl;
 const previousPrivate = config.allowPrivateNetworkFetch;
 const previousDispatcher = getGlobalDispatcher();
@@ -24,8 +25,10 @@ await new Promise<void>(resolve => proxy.listen(0, "127.0.0.1", resolve));
 config.egressProxyUrl = `http://127.0.0.1:${(proxy.address() as { port: number }).port}`;
 config.allowPrivateNetworkFetch = true;
 deployment.directFetchHosts = ["domestic.invalid", "localhost"];
+deployment.proxyFetchHosts = ["public-feed.invalid.cn"];
 after(async () => {
   deployment.directFetchHosts = previousHosts;
+  deployment.proxyFetchHosts = previousProxyHosts;
   config.egressProxyUrl = previousProxy;
   config.allowPrivateNetworkFetch = previousPrivate;
   setGlobalDispatcher(previousDispatcher);
@@ -60,4 +63,13 @@ test("direct host exceptions never grant permission to fetch a private address",
   config.allowPrivateNetworkFetch = false;
   try { await assert.rejects(guardedFetch("http://localhost/metadata"), /Blocked/); }
   finally { config.allowPrivateNetworkFetch = true; }
+});
+
+test("a configured domestic hostname uses proxy DNS without changing other domestic hosts", async () => {
+  mock.get("https://other.invalid.cn").intercept({ path: "/feed" }).reply(200, "direct");
+  const before = proxyHits;
+  assert.equal((await guardedFetch("https://other.invalid.cn/feed")).text(), "direct");
+  assert.equal(proxyHits, before);
+  await assert.rejects(guardedFetch("https://public-feed.invalid.cn/feed", { timeoutMs: 1000 }));
+  assert.ok(proxyHits > before);
 });
