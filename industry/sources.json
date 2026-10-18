@@ -1,5 +1,5 @@
 {
-  "note": "金讯金融候选信源。2026-10-17 已核验 RSS/Atom 与 Gold Focus 网页列表结构；运行时仍以后台试抓为准。首次启动导入，已有源不会覆盖，删除文件中的源也不会暂停数据库旧源。仅摘要和原文链接；授权及覆盖说明见 docs/finance.md。",
+  "note": "金讯金融信源配置。2026-10-18 已实际核验30个来源，ECB MID仅隔离采集运行状态，其余29个进入财经处理流程。首次启动导入，已有源不会覆盖，删除文件中的源也不会暂停数据库旧源。每个新增源首次最多3条；仅摘要和原文链接；核验、DNS修复和接入说明见docs/finance.md。",
   "sources": [
     {
       "id": "rss-bitcoin-core",
@@ -320,6 +320,381 @@
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-sec",
+      "name": "美国SEC · 新闻公告",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.sec.gov/news/pressreleases.rss",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "sec",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "ETF",
+        "监管"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-boe",
+      "name": "英格兰银行 · 新闻",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.bankofengland.co.uk/rss/news",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "利率"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-us-treasury",
+      "name": "美国财政部 · 新闻公告",
+      "kind": "web_list",
+      "config": {
+        "url": "https://home.treasury.gov/news/press-releases",
+        "parseMode": "html",
+        "itemSelector": "[data-news-list] > div:has(h3 a)",
+        "linkSelector": "h3 a",
+        "titleSelector": "h3 a",
+        "publishedAtSelector": "time",
+        "allowUrlPrefixes": [
+          "https://home.treasury.gov/news/press-releases/"
+        ],
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "宏观经济"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nyfed-lse",
+      "name": "纽约联储研究 · Liberty Street Economics",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://feeds.feedburner.com/LibertyStreetEconomics",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "fed",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "研究"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-esma",
+      "name": "欧洲证券和市场管理局 · 新闻",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.esma.europa.eu/rss.xml",
+        "publishedAtSelector": ".field--name-created time[datetime]",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "监管"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-ecb-mid",
+      "name": "欧洲央行 · 市场基础设施运行状态",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://mid.ecb.europa.eu/rss/mid.xml",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "ecb",
+      "participation_mode": "isolated",
+      "interval_minutes": 120,
+      "tags": [
+        "官方"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-theblock",
+      "name": "The Block",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.theblock.co/rss.xml",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-decrypt",
+      "name": "Decrypt",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://decrypt.co/feed",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-bitcoin-magazine",
+      "name": "Bitcoin Magazine",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://bitcoinmagazine.com/feed",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-cryptoslate",
+      "name": "CryptoSlate",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://cryptoslate.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-newsbtc",
+      "name": "NewsBTC",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.newsbtc.com/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "比特币"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-mining-usa",
+      "name": "MINING.COM · 美国与大宗商品",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.mining.com/region/usa/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "黄金"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-marketwatch-top",
+      "name": "MarketWatch · 头条",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://feeds.marketwatch.com/marketwatch/topstories",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": "marketwatch",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "股票"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-marketwatch-bulletins",
+      "name": "MarketWatch · 快讯",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://feeds.marketwatch.com/marketwatch/bulletins",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": "marketwatch",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "宏观经济"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-stats-cn",
+      "name": "国家统计局 · 最新数据发布",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.stats.gov.cn/sj/zxfb/rss.xml",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "宏观经济"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-kitco-news",
+      "name": "Kitco · 贵金属新闻",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.kitco.com/news",
+        "parseMode": "html",
+        "itemSelector": "div:has(> time[datetime]):has(> a[href^=\"/news/article/\"])",
+        "linkSelector": "a[href^=\"/news/article/\"]",
+        "titleSelector": "a[href^=\"/news/article/\"]",
+        "publishedAtSelector": "time",
+        "allowUrlPrefixes": [
+          "https://www.kitco.com/news/article/"
+        ],
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T2",
+      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "媒体",
+        "黄金"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-hkex-zh",
+      "name": "香港交易所 · 中文新闻",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.hkex.com.hk/Services/RSS-Feeds/News-Releases?sc_lang=zh-HK",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "官方",
+        "股票",
+        "ETF"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "owner_entity_id": null
     }
   ]
 }

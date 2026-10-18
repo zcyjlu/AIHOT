@@ -1,5 +1,6 @@
 // RSS 2.0 / Atom / RDF feeds.
 import { XMLParser } from "fast-xml-parser";
+import { load } from "cheerio";
 import { fetchListing } from "./listing-fetch.ts";
 import { collapseWhitespace, escapeXml, stripTags } from "../lib/text.ts";
 import { sanitizeBody } from "../content/sanitize.ts";
@@ -186,6 +187,8 @@ export async function fetchRss(source: SourceRow, opts: { force?: boolean } = {}
       if (!link || !title) continue;
       const contentEncoded = text(it["content:encoded"]);
       const description = text(it.description);
+      const dateElement = source.config.publishedAtSelector
+        ? load(description || contentEncoded)(source.config.publishedAtSelector).first() : null;
       const video = isVideoPageUrl(link);
       const videoExcerpt = video ? mediaDescription(it) : null;
       const bodyHtmlRaw = contentEncoded || (summaryIsBody && !video ? description : "");
@@ -200,7 +203,8 @@ export async function fetchRss(source: SourceRow, opts: { force?: boolean } = {}
         ...(mediaFile ? { identityKey: identityKeyFor({ sourceId: source.id, url: guid, title, via: "fetch" }) } : {}),
         title,
         author: text(it["dc:creator"]) || text(it.author) || null,
-        publishedAt: parseDate(text(it.pubDate) || text(it["dc:date"]) || text(it.published)),
+        publishedAt: parseDate(text(it.pubDate) || text(it["dc:date"]) || text(it.published))
+          ?? (dateElement ? parseDate(dateElement.attr("datetime") || dateElement.attr("content") || "") : null),
         ...feedText(bodyHtml, description ? stripTags(description) : null, source, !mediaFile && !video),
         ...(videoExcerpt ? { excerpt: videoExcerpt } : {}),
         media: media.slice(0, 6),

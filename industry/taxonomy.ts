@@ -50,6 +50,7 @@ export const ENTITIES: Record<string, { name: string; displayTag: string | null;
   bls: { name: "美国劳工统计局", displayTag: "美国劳工统计局", aliases: ["美国劳工统计局", "Bureau of Labor Statistics", "BLS"] },
   sec: { name: "美国SEC", displayTag: "美国SEC", aliases: ["美国SEC", "美国证券交易委员会", "Securities and Exchange Commission", "SEC"] },
   wgc: { name: "世界黄金协会", displayTag: "世界黄金协会", aliases: ["世界黄金协会", "World Gold Council", "WGC"] },
+  marketwatch: { name: "MarketWatch", displayTag: null, aliases: ["MarketWatch", "市场观察"] },
   blackrock: { name: "BlackRock", displayTag: "BlackRock", aliases: ["BlackRock", "贝莱德", "iShares"], otherNames: ["IBIT", "iShares Bitcoin Trust"] },
   vanguard: { name: "Vanguard", displayTag: "Vanguard", aliases: ["Vanguard", "先锋领航"] },
   cme: { name: "CME", displayTag: "CME", aliases: ["CME", "CME Group", "芝商所"], otherNames: ["COMEX"] },

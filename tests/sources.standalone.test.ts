@@ -16,6 +16,8 @@ import { noiseFiltered } from "@aihot/backend/sources/filters";
 const source = (config: Record<string, unknown>) => ({ id: "test-list", config }) as never;
 
 const pages: Record<string, () => string> = {
+  "/embedded-date.xml": () => `<rss version="2.0"><channel>${["", "<pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>"].map((date, i) =>
+    `<item><title>Regulator notice ${i}</title><link>https://example.org/news/${i}</link>${date}<description><![CDATA[<span class="created"><time datetime="2026-10-16T16:14:51+02:00">16 October 2026</time></span><p>Notice text.</p>]]></description></item>`).join("")}</channel></rss>`,
   // The Verge's feed: a teaser that ends in "Read the full story", next to a post whose feed carries it whole.
   "/verge.xml": () =>
     `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">` +
@@ -51,6 +53,17 @@ await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve
 const site = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 config.allowPrivateNetworkFetch = true;
 after(() => new Promise<void>((resolve) => server.close(() => resolve())));
+
+test("an explicit feed description date selector supplies only missing standard dates", async () => {
+  const read = async (publishedAtSelector?: string) => (await fetchRss({ id: "regulator-feed", kind: "rss", config: {
+    feedUrl: `${site}/embedded-date.xml`, ...(publishedAtSelector ? { publishedAtSelector } : {}),
+  }, participation_mode: "editorial", cursor: null } as never, { force: true })).candidates;
+  assert.equal((await read())[0]!.publishedAt, null);
+  const configured = await read(".created time[datetime]");
+  assert.equal(configured[0]!.publishedAt?.toISOString(), "2026-10-16T14:14:51.000Z");
+  assert.equal(configured[1]!.publishedAt?.toISOString(), "2026-09-30T00:00:00.000Z");
+  assert.equal((await read(".missing"))[0]!.publishedAt, null);
+});
 
 test("Jina card links become posts with their own titles", () => {
   const md = [
